@@ -1,5 +1,8 @@
-## Hi there 👋
-
+## 差异百分比计算器v0.1
+#功能1：输入两个数值,计算差异百分比。
+##样例:输入1:752;输入2:684;输出:9.47%。
+#功能2：输入一个数值与允许的差异百分比，计算允许数值的范围。
+##样例:输入1:752;输入2:9.47;输出:680.79~823.21
 <!--
 **Syberlux/syberlux** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
 
