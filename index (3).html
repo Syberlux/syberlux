@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>差异百分比计算器</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#10B981',
+                        neutral: '#64748B',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .input-focus {
+                @apply focus:ring-2 focus:ring-primary/50 focus:border-primary focus:outline-none;
+            }
+            .card-shadow {
+                @apply shadow-lg hover:shadow-xl transition-shadow duration-300;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4 font-sans">
+    <div class="w-full max-w-md bg-white rounded-xl p-6 md:p-8 card-shadow">
+        <div class="text-center mb-6">
+            <h1 class="text-[clamp(1.5rem,3vw,2rem)] font-bold text-gray-800">差异百分比计算器</h1>
+            <p class="text-neutral mt-2">输入两个数值，计算它们之间的差异百分比</p>
+        </div>
+        
+        <div id="primaryPanel">
+            <div class="space-y-4 mb-6">
+                <div>
+                    <label for="value1" class="block text-sm font-medium text-gray-700 mb-1">σ1</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-neutral">
+                            <i class="fa fa-hashtag"></i>
+                        </span>
+                        <input type="number" id="value1" step="any" 
+                            class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg input-focus transition-all duration-200"
+                            placeholder="输入第一个数值">
+                    </div>
+                </div>
+                
+                <div>
+                    <label for="value2" class="block text-sm font-medium text-gray-700 mb-1">σ2</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-neutral">
+                            <i class="fa fa-hashtag"></i>
+                        </span>
+                        <input type="number" id="value2" step="any" 
+                            class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg input-focus transition-all duration-200"
+                            placeholder="输入第二个数值">
+                    </div>
+                </div>
+            </div>
+            
+            <button id="calculateBtn" class="w-full bg-primary hover:bg-primary/90 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center gap-2">
+                <i class="fa fa-calculator"></i>
+                <span>计算差异百分比</span>
+            </button>
+
+            <button id="toRangeBtn" class="w-full mt-3 bg-white text-primary border border-primary/40 hover:border-primary font-medium py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center gap-2">
+                <i class="fa fa-balance-scale"></i>
+                <span>进入允许范围计算</span>
+            </button>
+            
+            <div id="result" class="mt-6 p-4 rounded-lg hidden">
+                <div class="text-center">
+                    <h2 class="text-lg font-semibold text-gray-800 mb-2">计算结果</h2>
+                    <div class="text-2xl font-bold text-primary mb-2" id="resultValue">-</div>
+                    <p class="text-sm text-neutral" id="formula">差异百分比 (%) = |(σ1 - σ2)| / [(σ1 + σ2)/2] × 100%</p>
+                </div>
+            </div>
+            
+            <div id="errorMessage" class="mt-6 p-4 bg-red-50 text-red-600 rounded-lg hidden">
+                <i class="fa fa-exclamation-circle mr-2"></i>
+                <span>请输入有效的数值，且两个数值的和不能为0</span>
+            </div>
+        </div>
+
+        <div id="rangePanel" class="hidden">
+            <div class="text-center mb-4">
+                <h2 class="text-lg font-semibold text-gray-800">允许范围计算</h2>
+                <p class="text-neutral mt-1 text-sm">输入一个数值和允许差异百分比，输出允许范围</p>
+            </div>
+
+            <div class="space-y-4 mb-6">
+                <div>
+                    <label for="baseValue" class="block text-sm font-medium text-gray-700 mb-1">基准值</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-neutral">
+                            <i class="fa fa-hashtag"></i>
+                        </span>
+                        <input type="number" id="baseValue" step="any"
+                            class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg input-focus transition-all duration-200"
+                            placeholder="输入基准值">
+                    </div>
+                </div>
+
+                <div>
+                    <label for="tolerancePercent" class="block text-sm font-medium text-gray-700 mb-1">允许差异百分比 (%)</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-neutral">
+                            <i class="fa fa-percent"></i>
+                        </span>
+                        <input type="number" id="tolerancePercent" step="any" min="0"
+                            class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg input-focus transition-all duration-200"
+                            placeholder="输入允许差异百分比">
+                    </div>
+                </div>
+            </div>
+
+            <button id="rangeBtn" class="w-full bg-secondary hover:bg-secondary/90 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center gap-2">
+                <i class="fa fa-balance-scale"></i>
+                <span>计算允许范围</span>
+            </button>
+
+            <button id="backToPrimaryBtn" class="w-full mt-3 bg-white text-secondary border border-secondary/40 hover:border-secondary font-medium py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center gap-2">
+                <i class="fa fa-arrow-left"></i>
+                <span>返回差异百分比计算</span>
+            </button>
+
+            <div id="rangeResult" class="mt-6 p-4 rounded-lg hidden">
+                <div class="text-center">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-2">允许范围</h3>
+                    <div class="text-2xl font-bold text-secondary mb-2" id="rangeValue">-</div>
+                    <p class="text-sm text-neutral" id="rangeFormula">范围 = 基准值 × (1 ± 允许差异%)</p>
+                </div>
+            </div>
+
+            <div id="rangeError" class="mt-6 p-4 bg-red-50 text-red-600 rounded-lg hidden">
+                <i class="fa fa-exclamation-circle mr-2"></i>
+                <span>请输入有效的数值，差异百分比不能为负数</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 获取DOM元素
+        const value1Input = document.getElementById('value1');
+        const value2Input = document.getElementById('value2');
+        const calculateBtn = document.getElementById('calculateBtn');
+        const resultDiv = document.getElementById('result');
+        const resultValue = document.getElementById('resultValue');
+        const errorMessage = document.getElementById('errorMessage');
+        const primaryPanel = document.getElementById('primaryPanel');
+        const rangePanel = document.getElementById('rangePanel');
+        const toRangeBtn = document.getElementById('toRangeBtn');
+        const baseValueInput = document.getElementById('baseValue');
+        const tolerancePercentInput = document.getElementById('tolerancePercent');
+        const rangeBtn = document.getElementById('rangeBtn');
+        const backToPrimaryBtn = document.getElementById('backToPrimaryBtn');
+        const rangeResult = document.getElementById('rangeResult');
+        const rangeValue = document.getElementById('rangeValue');
+        const rangeError = document.getElementById('rangeError');
+        
+        // 计算差异百分比的函数
+        function calculatePercentageDifference() {
+            // 隐藏结果和错误信息
+            resultDiv.classList.add('hidden');
+            errorMessage.classList.add('hidden');
+            
+            // 获取输入值
+            const value1 = parseFloat(value1Input.value);
+            const value2 = parseFloat(value2Input.value);
+            
+            // 验证输入：检查是否为有效数字，以及两个数值的和是否为0
+            if (isNaN(value1) || isNaN(value2) || (value1 + value2) === 0) {
+                errorMessage.classList.remove('hidden');
+                return;
+            }
+            
+            // 计算差异百分比：|(σ₁ - σ₂)| / [(σ₁ + σ₂)/2] × 100%
+            const numerator = Math.abs(value1 - value2);
+            const denominator = (value1 + value2) / 2;
+            const percentageDifference = (numerator / denominator) * 100;
+            
+            // 显示结果，保留两位小数
+            resultValue.textContent = `${percentageDifference.toFixed(2)}%`;
+            resultDiv.classList.remove('hidden');
+            
+            // 添加结果出现的动画效果
+            resultDiv.classList.add('animate-fade-in');
+            setTimeout(() => {
+                resultDiv.classList.remove('animate-fade-in');
+            }, 500);
+        }
+
+        // 计算允许范围
+        function calculateAllowedRange() {
+            rangeResult.classList.add('hidden');
+            rangeError.classList.add('hidden');
+
+            const baseValue = parseFloat(baseValueInput.value);
+            const tolerancePercent = parseFloat(tolerancePercentInput.value);
+
+            if (isNaN(baseValue) || isNaN(tolerancePercent) || tolerancePercent < 0) {
+                rangeError.classList.remove('hidden');
+                return;
+            }
+
+            const ratio = tolerancePercent / 100;
+            const minValue = baseValue * (1 - ratio);
+            const maxValue = baseValue * (1 + ratio);
+            const low = Math.min(minValue, maxValue);
+            const high = Math.max(minValue, maxValue);
+
+            rangeValue.textContent = `${low.toFixed(2)} ~ ${high.toFixed(2)}`;
+            rangeResult.classList.remove('hidden');
+
+            rangeResult.classList.add('animate-fade-in');
+            setTimeout(() => {
+                rangeResult.classList.remove('animate-fade-in');
+            }, 500);
+        }
+        
+        // 为按钮添加点击事件
+
+        function showPrimaryPanel() {
+            rangePanel.classList.add('hidden');
+            primaryPanel.classList.remove('hidden');
+            rangeResult.classList.add('hidden');
+            rangeError.classList.add('hidden');
+        }
+
+        function showRangePanel() {
+            primaryPanel.classList.add('hidden');
+            rangePanel.classList.remove('hidden');
+            resultDiv.classList.add('hidden');
+            errorMessage.classList.add('hidden');
+        }
+
+        calculateBtn.addEventListener('click', calculatePercentageDifference);
+        rangeBtn.addEventListener('click', calculateAllowedRange);
+        toRangeBtn.addEventListener('click', showRangePanel);
+        backToPrimaryBtn.addEventListener('click', showPrimaryPanel);
+        
+        // 为输入框添加回车键触发计算
+        value1Input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') calculatePercentageDifference();
+        });
+        
+        value2Input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') calculatePercentageDifference();
+        });
+
+        baseValueInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') calculateAllowedRange();
+        });
+
+        tolerancePercentInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') calculateAllowedRange();
+        });
+        
+        // 添加简单的动画样式
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeIn {
+                from { opacity: 0; transform: translateY(10px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+            .animate-fade-in {
+                animation: fadeIn 0.5s ease-out forwards;
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
